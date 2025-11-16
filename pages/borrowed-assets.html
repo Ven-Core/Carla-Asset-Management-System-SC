@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MANDAUE CITY COLLEGE - Borrowed Assets</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/asset-dashboard.css">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            background-color: #1e3c72;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .details-container {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .details-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .details-section h4 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .detail-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .detail-item label {
+            font-weight: 600;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .detail-item span {
+            color: #333;
+            font-size: 14px;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.pending { background-color: #fff3e0; color: #ef6c00; }
+        .status-badge.approved { background-color: #e3f2fd; color: #1565c0; }
+        .status-badge.borrowed { background-color: #e7f4e4; color: #2e7d32; }
+        .status-badge.overdue { background-color: #ffebee; color: #c62828; }
+        .status-badge.returned { background-color: #f3e5f5; color: #7b1fa2; }
+        .status-badge.scheduled { background-color: #e3f2fd; color: #1565c0; }
+        .status-badge.in_progress { background-color: #fff3e0; color: #ef6c00; }
+        .status-badge.completed { background-color: #e7f4e4; color: #2e7d32; }
+        .status-badge.cancelled { background-color: #ffebee; color: #c62828; }
+
+        .action-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .action-dropdown-btn {
+            background: #1e3c72;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            z-index: 1001;
+            right: 0;
+            top: 100%;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .action-dropdown-content button {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .action-dropdown-content button:hover {
+            background-color: #f8f9fa;
+        }
+
+        .action-dropdown-content button.view { color: #17a2b8; }
+        .action-dropdown-content button.return { color: #28a745; }
+        .action-dropdown-content button.extend { color: #ffc107; }
+        .action-dropdown-content button.maintenance { color: #ff9800; }
+
+        .action-dropdown:hover .action-dropdown-content {
+            display: block;
+        }
+
+        .table-container {
+            position: relative;
+            overflow: visible;
+        }
+
+        .asset-table {
+            position: relative;
+        }
+
+        .maintenance-history {
+            margin-top: 20px;
+        }
+
+        .maintenance-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+
+        .maintenance-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .maintenance-item-type {
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .maintenance-item-date {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .maintenance-item-details {
+            font-size: 13px;
+            color: #555;
+        }
+
+        .edit-maintenance-btn {
+            background: none;
+            border: none;
+            color: #17a2b8;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="../img/mcc.png" alt="Mandaue City College Logo" class="logo">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                        <span>Home</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='asset-dashboard.html'">
+                        <span>Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='departments.html'">
+                        <span>Department</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrow-application.html'">
+                        <span>Borrow Application</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowing-request.html'">
+                        <span>Borrowing Request</span>
+                    </li>
+                    <li class="nav-item active">
+                        <span>Borrowed Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='maintenance.html'">
+                        <span>Under maintenance</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='inactive-assets.html'">
+                        <span>Inactive asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='reports.html'">
+                        <span>Log Out</span>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>MANDAUE CITY COLLEGE ASSET MANAGEMENT SYSTEM</h1>
+            </div>
+            <button class="search-btn" onclick="toggleSearch()">
+                <i class="fas fa-search"></i> Search Assets
+            </button>
+            
+            <div class="search-section" id="searchSection" style="display: none;">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search by serial number, borrower, department..." class="search-input">
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="borrowed">Borrowed</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="returned">Returned</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <select id="departmentFilter" class="filter-select">
+                        <option value="">All Departments</option>
+                        <option value="technology">School of Technology</option>
+                        <option value="education">School of Education</option>
+                        <option value="business">School of Business</option>
+                        <option value="clinic">Clinic</option>
+                        <option value="library">Library</option>
+                        <option value="registrar">Registrar</option>
+                        <option value="saso">SASO</option>
+                        <option value="cashier">Cashier</option>
+                    </select>
+                    <button class="clear-btn" onclick="clearFilters()">Clear</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="asset-table">
+                    <thead>
+                        <tr>
+                            <th>Serial num</th>
+                            <th>Asset Name</th>
+                            <th>Borrower</th>
+                            <th>Department</th>
+                            <th>Borrowed Date</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="borrowedAssetsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Borrow Modal -->
+    <div id="viewBorrowModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Borrow Application Details</h3>
+                <button class="close-btn" onclick="closeViewBorrowModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="details-container">
+                    <div class="details-section">
+                        <h4>Asset Information</h4>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <label>Asset Name:</label>
+                                <span id="viewAssetName">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Serial Number:</label>
+                                <span id="viewSerialNumber">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="details-section">
+                        <h4>Borrower Information</h4>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <label>Borrower Name:</label>
+                                <span id="viewBorrowerName">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Borrower ID:</label>
+                                <span id="viewBorrowerId">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Department:</label>
+                                <span id="viewBorrowerDepartment">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Contact Number:</label>
+                                <span id="viewBorrowerContact">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Email:</label>
+                                <span id="viewBorrowerEmail">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="details-section">
+                        <h4>Borrow Details</h4>
+                        <div class="details-grid">
+                            <div class="detail-item full-width">
+                                <label>Purpose:</label>
+                                <span id="viewPurpose">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Requested Date:</label>
+                                <span id="viewRequestedDate">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Expected Return Date:</label>
+                                <span id="viewExpectedReturnDate">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Actual Return Date:</label>
+                                <span id="viewActualReturnDate">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Status:</label>
+                                <span id="viewStatus" class="status-badge">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="details-section">
+                        <h4>Additional Information</h4>
+                        <div class="details-grid">
+                            <div class="detail-item full-width">
+                                <label>Notes:</label>
+                                <span id="viewNotes">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeViewBorrowModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Asset Modal -->
+    <div id="returnAssetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Return Asset</h3>
+                <button class="close-btn" onclick="closeReturnModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="returnAssetForm">
+                    <div class="form-group">
+                        <label>Serial Number:</label>
+                        <input type="text" id="returnSerialNumber" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Asset Name:</label>
+                        <input type="text" id="returnAssetName" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Return Date:</label>
+                        <input type="date" id="returnDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Asset Condition:</label>
+                        <select id="assetCondition" required>
+                            <option value="">Select Condition</option>
+                            <option value="excellent">Excellent</option>
+                            <option value="good">Good</option>
+                            <option value="fair">Fair</option>
+                            <option value="poor">Poor</option>
+                            <option value="damaged">Damaged</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Return Notes:</label>
+                        <textarea id="returnNotes" placeholder="Any additional notes..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeReturnModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitReturn()">Submit Return</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extend Asset Modal -->
+    <div id="extendAssetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Extend Borrowing Period</h3>
+                <button class="close-btn" onclick="closeExtendModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="extendAssetForm">
+                    <div class="form-group">
+                        <label>Serial Number:</label>
+                        <input type="text" id="extendSerialNumber" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Asset Name:</label>
+                        <input type="text" id="extendAssetName" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Current Due Date:</label>
+                        <input type="text" id="currentDueDate" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>New Due Date:</label>
+                        <input type="date" id="newDueDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Reason for Extension:</label>
+                        <textarea id="extensionReason" placeholder="Explain why you need to extend..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeExtendModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitExtension()">Submit Extension</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Modal -->
+    <div id="maintenanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Asset Maintenance</h3>
+                <button class="close-btn" onclick="closeMaintenanceModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="maintenanceForm">
+                    <input type="hidden" id="maintenanceId">
+                    <input type="hidden" id="maintenanceAssetId">
+                    
+                    <div class="form-group">
+                        <label>Serial Number:</label>
+                        <input type="text" id="maintenanceSerialNumber" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Asset Name:</label>
+                        <input type="text" id="maintenanceAssetName" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Maintenance Type:</label>
+                        <select id="maintenanceType" required>
+                            <option value="">Select Type</option>
+                            <option value="preventive">Preventive</option>
+                            <option value="corrective">Corrective</option>
+                            <option value="emergency">Emergency</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea id="maintenanceDescription" placeholder="Describe the maintenance required..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Technician Name:</label>
+                        <input type="text" id="technicianName" placeholder="Enter technician name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date:</label>
+                        <input type="date" id="maintenanceStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Expected Completion Date:</label>
+                        <input type="date" id="expectedCompletionDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Actual Completion Date:</label>
+                        <input type="date" id="actualCompletionDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Cost:</label>
+                        <input type="number" id="maintenanceCost" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Status:</label>
+                        <select id="maintenanceStatus" required>
+                            <option value="">Select Status</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes:</label>
+                        <textarea id="maintenanceNotes" placeholder="Additional notes..."></textarea>
+                    </div>
+                </form>
+
+                <div class="maintenance-history" id="maintenanceHistorySection" style="display: none;">
+                    <h4>Maintenance History</h4>
+                    <div id="maintenanceHistoryList"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeMaintenanceModal()">Cancel</button>
+                <button class="btn btn-warning" id="showHistoryBtn" onclick="toggleMaintenanceHistory()">Show History</button>
+                <button class="btn btn-primary" onclick="submitMaintenance()">Save Maintenance</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAssetData = null;
+        let allAssetsData = [];
+        let currentMaintenanceHistory = [];
+
+        function loadBorrowedAssets() {
+            fetch('../Api/assets/borrowed-assets.php?action=getBorrowedAssets')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        allAssetsData = data.data;
+                        filterAndDisplayAssets();
+                    } else {
+                        showErrorMessage('Failed to load borrowed assets: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    showErrorMessage('Network error occurred: ' + error.message);
+                });
+        }
+
+        function filterAndDisplayAssets() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+            const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
+
+            const filteredAssets = allAssetsData.filter(asset => {
+                const matchesSearch = !searchTerm || 
+                    (asset.serial_num && asset.serial_num.toLowerCase().includes(searchTerm)) ||
+                    (asset.asset_name && asset.asset_name.toLowerCase().includes(searchTerm)) ||
+                    (asset.borrower_name && asset.borrower_name.toLowerCase().includes(searchTerm)) ||
+                    (asset.borrower_department && asset.borrower_department.toLowerCase().includes(searchTerm));
+
+                const matchesStatus = !statusFilter || 
+                    (asset.raw_status && asset.raw_status.toLowerCase() === statusFilter);
+
+                const matchesDepartment = !departmentFilter || 
+                    (asset.borrower_department && asset.borrower_department.toLowerCase().includes(departmentFilter));
+
+                return matchesSearch && matchesStatus && matchesDepartment;
+            });
+
+            displayBorrowedAssets(filteredAssets);
+        }
+
+        function displayBorrowedAssets(assets) {
+            const tbody = document.getElementById('borrowedAssetsTableBody');
+            window.currentAssetsData = assets;
+
+            if (assets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No borrowed assets found</td></tr>';
+                return;
+            }
+
+            let html = '';
+            assets.forEach(asset => {
+                const actionDropdown = getActionDropdown(asset);
+                html += `
+                    <tr>
+                        <td>${asset.serial_num || 'N/A'}</td>
+                        <td>${asset.asset_name || 'N/A'}</td>
+                        <td>${asset.borrower_name || 'N/A'}</td>
+                        <td>${asset.borrower_department || 'N/A'}</td>
+                        <td>${formatDate(asset.borrowed_date)}</td>
+                        <td>${formatDate(asset.due_date)}</td>
+                        <td><span class="status-badge ${asset.status_class}">${asset.status}</span></td>
+                        <td>${actionDropdown}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function getActionDropdown(asset) {
+            let dropdown = `
+                <div class="action-dropdown">
+                    <button class="action-dropdown-btn">
+                        <i class="fas fa-ellipsis-v"></i> Actions
+                    </button>
+                    <div class="action-dropdown-content">
+                        <button class="view" onclick="viewAsset(${asset.id})">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+            `;
+                    
+            if (asset.status !== 'Returned') {
+                dropdown += `
+                        <button class="return" onclick="openReturnModal(${asset.id})">
+                            <i class="fas fa-undo"></i> Return
+                        </button>
+                `;
+            }
+        
+            if (asset.status !== 'Returned' && asset.status !== 'Overdue') {
+                dropdown += `
+                        <button class="extend" onclick="openExtendModal(${asset.id})">
+                            <i class="fas fa-calendar-plus"></i> Extend
+                        </button>
+                `;
+            }
+
+            dropdown += `
+                        <button class="maintenance" onclick="openMaintenanceModal(${asset.id})">
+                            <i class="fas fa-tools"></i> Maintenance
+                        </button>
+            `;
+        
+            dropdown += `
+                    </div>
+                </div>
+            `;
+            
+            return dropdown;
+        }
+
+        function openReturnModal(assetId) {
+            const asset = getAssetById(assetId);
+            if (asset) {
+                document.getElementById('returnSerialNumber').value = asset.serial_num || '';
+                document.getElementById('returnAssetName').value = asset.asset_name || '';
+                document.getElementById('returnDate').valueAsDate = new Date();
+                document.getElementById('returnAssetForm').dataset.assetId = assetId;
+                document.getElementById('returnAssetModal').style.display = 'flex';
+            }
+        }
+
+        function openExtendModal(assetId) {
+            const asset = getAssetById(assetId);
+            if (asset) {
+                document.getElementById('extendSerialNumber').value = asset.serial_num || '';
+                document.getElementById('extendAssetName').value = asset.asset_name || '';
+                document.getElementById('currentDueDate').value = formatDateForDisplay(asset.due_date);
+                document.getElementById('extendAssetForm').dataset.assetId = assetId;
+                document.getElementById('extendAssetModal').style.display = 'flex';
+            }
+        }
+
+        function openMaintenanceModal(assetId) {
+            const asset = getAssetById(assetId);
+            if (asset) {
+                // Reset form for new maintenance record
+                document.getElementById('maintenanceForm').reset();
+                document.getElementById('maintenanceId').value = '';
+                document.getElementById('maintenanceAssetId').value = assetId;
+                document.getElementById('maintenanceSerialNumber').value = asset.serial_num || '';
+                document.getElementById('maintenanceAssetName').value = asset.asset_name || '';
+                document.getElementById('maintenanceStartDate').valueAsDate = new Date();
+                
+                // Hide history section initially
+                document.getElementById('maintenanceHistorySection').style.display = 'none';
+                document.getElementById('showHistoryBtn').textContent = 'Show History';
+                
+                // Load maintenance history
+                loadMaintenanceHistory(assetId);
+                
+                document.getElementById('maintenanceModal').style.display = 'flex';
+            }
+        }
+
+        function loadMaintenanceHistory(assetId) {
+            fetch(`../Api/assets/maintenance.php?action=getMaintenance&asset_id=${assetId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentMaintenanceHistory = data.data;
+                        displayMaintenanceHistory(data.data);
+                    } else {
+                        console.error('Failed to load maintenance history:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Network error loading maintenance history:', error);
+                });
+        }
+        
+        function submitMaintenance() {
+            const formData = {
+                id: document.getElementById('maintenanceId').value,
+                asset_id: document.getElementById('maintenanceAssetId').value,
+                maintenance_type: document.getElementById('maintenanceType').value,
+                description: document.getElementById('maintenanceDescription').value,
+                technician_name: document.getElementById('technicianName').value,
+                start_date: document.getElementById('maintenanceStartDate').value,
+                expected_completion_date: document.getElementById('expectedCompletionDate').value,
+                actual_completion_date: document.getElementById('actualCompletionDate').value,
+                cost: document.getElementById('maintenanceCost').value,
+                status: document.getElementById('maintenanceStatus').value,
+                notes: document.getElementById('maintenanceNotes').value
+            };
+        
+            // Validate required fields
+            if (!formData.maintenance_type || !formData.description || !formData.technician_name || 
+                !formData.start_date || !formData.expected_completion_date || !formData.status) {
+                alert('Please fill all required fields');
+                return;
+            }
+        
+            const action = formData.id ? 'updateMaintenance' : 'addMaintenance';
+            
+            fetch(`../Api/assets/maintenance.php?action=${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Maintenance record saved successfully');
+                    closeMaintenanceModal();
+                    // Reload maintenance history if we're editing
+                    if (formData.asset_id) {
+                        loadMaintenanceHistory(formData.asset_id);
+                    }
+                } else {
+                    alert('Failed to save maintenance record: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Network error occurred');
+            });
+        }
+
+        function displayMaintenanceHistory(history) {
+            const historyList = document.getElementById('maintenanceHistoryList');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p>No maintenance history found</p>';
+                return;
+            }
+
+            let html = '';
+            history.forEach(record => {
+                html += `
+                    <div class="maintenance-item">
+                        <div class="maintenance-item-header">
+                            <span class="maintenance-item-type">${record.maintenance_type || 'N/A'}</span>
+                            <span class="maintenance-item-date">${formatDate(record.start_date)}</span>
+                        </div>
+                        <div class="maintenance-item-details">
+                            <div><strong>Technician:</strong> ${record.technician_name || 'N/A'}</div>
+                            <div><strong>Description:</strong> ${record.description || 'N/A'}</div>
+                            <div><strong>Status:</strong> <span class="status-badge ${record.status_class || ''}">${record.status || 'N/A'}</span></div>
+                            <div><strong>Cost:</strong> ${record.cost ? '₱' + parseFloat(record.cost).toFixed(2) : 'N/A'}</div>
+                            <button class="edit-maintenance-btn" onclick="editMaintenanceRecord(${record.id})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            historyList.innerHTML = html;
+        }
+
+        function editMaintenanceRecord(maintenanceId) {
+            const record = currentMaintenanceHistory.find(r => r.id == maintenanceId);
+            if (record) {
+                document.getElementById('maintenanceId').value = record.id;
+                document.getElementById('maintenanceAssetId').value = record.asset_id;
+                document.getElementById('maintenanceSerialNumber').value = record.serial_num || '';
+                document.getElementById('maintenanceAssetName').value = record.asset_name || '';
+                document.getElementById('maintenanceType').value = record.maintenance_type || '';
+                document.getElementById('maintenanceDescription').value = record.description || '';
+                document.getElementById('technicianName').value = record.technician_name || '';
+                document.getElementById('maintenanceStartDate').value = record.start_date || '';
+                document.getElementById('expectedCompletionDate').value = record.expected_completion_date || '';
+                document.getElementById('actualCompletionDate').value = record.actual_completion_date || '';
+                document.getElementById('maintenanceCost').value = record.cost || '';
+                document.getElementById('maintenanceStatus').value = record.status || '';
+                document.getElementById('maintenanceNotes').value = record.notes || '';
+                
+                // Show history section
+                document.getElementById('maintenanceHistorySection').style.display = 'block';
+                document.getElementById('showHistoryBtn').textContent = 'Hide History';
+            }
+        }
+
+        function toggleMaintenanceHistory() {
+            const historySection = document.getElementById('maintenanceHistorySection');
+            const showHistoryBtn = document.getElementById('showHistoryBtn');
+            
+            if (historySection.style.display === 'none') {
+                historySection.style.display = 'block';
+                showHistoryBtn.textContent = 'Hide History';
+            } else {
+                historySection.style.display = 'none';
+                showHistoryBtn.textContent = 'Show History';
+            }
+        }
+
+        function submitMaintenance() {
+            const formData = {
+                id: document.getElementById('maintenanceId').value,
+                asset_id: document.getElementById('maintenanceAssetId').value,
+                maintenance_type: document.getElementById('maintenanceType').value,
+                description: document.getElementById('maintenanceDescription').value,
+                technician_name: document.getElementById('technicianName').value,
+                start_date: document.getElementById('maintenanceStartDate').value,
+                expected_completion_date: document.getElementById('expectedCompletionDate').value,
+                actual_completion_date: document.getElementById('actualCompletionDate').value,
+                cost: document.getElementById('maintenanceCost').value,
+                status: document.getElementById('maintenanceStatus').value,
+                notes: document.getElementById('maintenanceNotes').value
+            };
+
+            // Validate required fields
+            if (!formData.maintenance_type || !formData.description || !formData.technician_name || 
+                !formData.start_date || !formData.expected_completion_date || !formData.status) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            const action = formData.id ? 'updateMaintenance' : 'addMaintenance';
+            
+            fetch(`../Api/assets/maintenance.php?action=${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Maintenance record saved successfully');
+                    closeMaintenanceModal();
+                    // Reload maintenance history if we're editing
+                    if (formData.asset_id) {
+                        loadMaintenanceHistory(formData.asset_id);
+                    }
+                } else {
+                    alert('Failed to save maintenance record: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Network error occurred');
+            });
+        }
+
+        function closeMaintenanceModal() {
+            document.getElementById('maintenanceModal').style.display = 'none';
+            document.getElementById('maintenanceForm').reset();
+        }
+
+        function viewAsset(assetId) {
+            const asset = getAssetById(assetId);
+            if (asset) {
+                currentAssetData = asset;
+                openViewBorrowModal(asset);
+            } else {
+                fetchAssetDetails(assetId);
+            }
+        }
+
+        function getAssetById(assetId) {
+            const assets = window.currentAssetsData || [];
+            return assets.find(asset => asset.id == assetId);
+        }
+
+        function fetchAssetDetails(assetId) {
+            fetch(`../Api/assets/borrowed-assets.php?action=getAssetDetails&id=${assetId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentAssetData = data.data;
+                        openViewBorrowModal(data.data);
+                    } else {
+                        alert('Failed to load borrow details: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    alert('Network error occurred while loading borrow details');
+                });
+        }
+
+        function openViewBorrowModal(asset) {
+            document.getElementById('viewAssetName').textContent = asset.asset_name || 'N/A';
+            document.getElementById('viewSerialNumber').textContent = asset.serial_num || 'N/A';
+            document.getElementById('viewBorrowerName').textContent = asset.borrower_name || 'N/A';
+            document.getElementById('viewBorrowerId').textContent = asset.borrower_id || 'N/A';
+            document.getElementById('viewBorrowerDepartment').textContent = asset.borrower_department || 'N/A';
+            document.getElementById('viewBorrowerContact').textContent = asset.borrower_contact || 'N/A';
+            document.getElementById('viewBorrowerEmail').textContent = asset.borrower_email || 'N/A';
+            document.getElementById('viewPurpose').textContent = asset.purpose || 'N/A';
+            document.getElementById('viewNotes').textContent = asset.notes || 'No notes available';
+            document.getElementById('viewRequestedDate').textContent = formatDateForDisplay(asset.borrowed_date) || 'N/A';
+            document.getElementById('viewExpectedReturnDate').textContent = formatDateForDisplay(asset.due_date) || 'N/A';
+            document.getElementById('viewActualReturnDate').textContent = formatDateForDisplay(asset.actual_return_date) || 'Not returned yet';
+            const statusElement = document.getElementById('viewStatus');
+            statusElement.textContent = asset.status || 'N/A';
+            statusElement.className = 'status-badge ' + (asset.status_class || 'unknown');
+            document.getElementById('viewBorrowModal').style.display = 'flex';
+        }
+
+        function closeViewBorrowModal() {
+            document.getElementById('viewBorrowModal').style.display = 'none';
+        }
+
+        function closeReturnModal() {
+            document.getElementById('returnAssetModal').style.display = 'none';
+            document.getElementById('returnAssetForm').reset();
+        }
+
+        function submitReturn() {
+            const form = document.getElementById('returnAssetForm');
+            const assetId = form.dataset.assetId;
+            const returnDate = document.getElementById('returnDate').value;
+            const condition = document.getElementById('assetCondition').value;
+            const notes = document.getElementById('returnNotes').value;
+
+            if (!returnDate || !condition) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            fetch('../Api/assets/borrowed-assets.php?action=returnAsset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: assetId,
+                    return_date: returnDate,
+                    condition: condition,
+                    notes: notes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Asset returned successfully');
+                    closeReturnModal();
+                    loadBorrowedAssets();
+                } else {
+                    alert('Failed to return asset: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Network error occurred');
+            });
+        }
+
+        function closeExtendModal() {
+            document.getElementById('extendAssetModal').style.display = 'none';
+            document.getElementById('extendAssetForm').reset();
+        }
+
+        function submitExtension() {
+            const form = document.getElementById('extendAssetForm');
+            const assetId = form.dataset.assetId;
+            const newDueDate = document.getElementById('newDueDate').value;
+            const reason = document.getElementById('extensionReason').value;
+
+            if (!newDueDate || !reason) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            fetch('../Api/assets/borrowed-assets.php?action=extendAsset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: assetId,
+                    new_due_date: newDueDate,
+                    reason: reason
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Asset extension approved');
+                    closeExtendModal();
+                    loadBorrowedAssets();
+                } else {
+                    alert('Failed to extend asset: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Network error occurred');
+            });
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        function formatDateForDisplay(dateString) {
+            if (!dateString) return '';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'});
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        function showErrorMessage(message) {
+            const tbody = document.getElementById('borrowedAssetsTableBody');
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #dc3545;">${message}</td></tr>`;
+        }
+
+        function toggleSearch() {
+            const searchSection = document.getElementById('searchSection');
+            searchSection.style.display = searchSection.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('departmentFilter').value = '';
+            filterAndDisplayAssets();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBorrowedAssets();
+            
+            document.getElementById('searchInput').addEventListener('input', filterAndDisplayAssets);
+            document.getElementById('statusFilter').addEventListener('change', filterAndDisplayAssets);
+            document.getElementById('departmentFilter').addEventListener('change', filterAndDisplayAssets);
+        });
+
+        document.addEventListener('click', function(event) {
+            const modals = ['viewBorrowModal', 'returnAssetModal', 'extendAssetModal', 'maintenanceModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modals = ['viewBorrowModal', 'returnAssetModal', 'extendAssetModal', 'maintenanceModal'];
+                modals.forEach(modalId => {
+                    document.getElementById(modalId).style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

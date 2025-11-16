@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrowing Request - MCC Asset Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/asset-dashboard.css">
+    <style>
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-badge.pending { background-color: #fff3e0; color: #ef6c00; }
+        .status-badge.approved { background-color: #e3f2fd; color: #1565c0; }
+        .status-badge.rejected { background-color: #ffebee; color: #c62828; }
+        .status-badge.borrowed { background-color: #e7f4e4; color: #2e7d32; }
+        .status-badge.returned { background-color: #f3e5f5; color: #7b1fa2; }
+        .status-badge.overdue { background-color: #ffebee; color: #c62828; }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .request-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .request-actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .text-muted {
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="../img/mcc.png" alt="Mandaue City College Logo" class="logo">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                        <span>Home</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='asset-dashboard.html'">
+                        <span>Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='departments.html'">
+                        <span>Department</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrow-application.html'">
+                        <span>Borrow Application</span>
+                    </li>
+                    <li class="nav-item active">
+                        <span>Borrowing Request</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowed-assets.html'">
+                        <span>Borrowed Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='maintenance.html'">
+                        <span>Under maintenance</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='inactive-assets.html'">
+                        <span>Inactive asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='reports.html'">
+                        <span>Log Out</span>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>MANDAUE CITY COLLEGE ASSET MANAGEMENT SYSTEM</h1>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="refreshRequests()" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table class="asset-table">
+                    <thead>
+                        <tr>
+                            <th>Asset #</th>
+                            <th>Asset</th>
+                            <th>Borrower</th>
+                            <th>Date request</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTableBody">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <i class="fas fa-spinner fa-spin"></i> Loading borrowing requests...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadBorrowingRequests() {
+            const tbody = document.getElementById('requestsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading borrowing requests...</td></tr>';
+
+            fetch('../Api/assets/borrow-request.php?action=getBorrowingRequests')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayBorrowingRequests(data.data);
+                    } else {
+                        showErrorMessage('Failed to load borrowing requests: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    showErrorMessage('Network error occurred: ' + error.message);
+                });
+        }
+
+        function displayBorrowingRequests(requests) {
+            const tbody = document.getElementById('requestsTableBody');
+            
+            if (requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No borrowing requests found</td></tr>';
+                return;
+            }
+
+            let html = '';
+            requests.forEach(request => {
+                const statusText = request.status.charAt(0).toUpperCase() + request.status.slice(1);
+                const actions = getRequestActions(request);
+                
+                html += `
+                    <tr>
+                        <td>${request.serial_number || 'N/A'}</td>
+                        <td>${request.asset_name || 'N/A'}</td>
+                        <td>${request.borrower_name || 'N/A'}</td>
+                        <td>${formatDate(request.requested_date)}</td>
+                        <td><span class="status-badge ${request.status_class}">${statusText}</span></td>
+                        <td>${actions}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function getRequestActions(request) {
+            if (request.status !== 'pending') {
+                return '<span class="text-muted">No actions</span>';
+            }
+            
+            return `
+                <div class="request-actions">
+                    <button class="btn btn-success" onclick="updateRequestStatus(${request.id}, 'approved')">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button class="btn btn-danger" onclick="updateRequestStatus(${request.id}, 'rejected')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                </div>
+            `;
+        }
+
+        function updateRequestStatus(requestId, status) {
+            const action = status === 'approved' ? 'accept' : 'reject';
+            if (!confirm(`Are you sure you want to ${action} this borrowing request?`)) {
+                return;
+            }
+
+            fetch('../Api/assets/borrow-request.php?action=updateRequestStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: requestId,
+                    status: status,
+                    approved_by: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Request ${status} successfully`);
+                    loadBorrowingRequests();
+                } else {
+                    alert('Failed to update request: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Network error occurred');
+            });
+        }
+
+        function refreshRequests() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            const originalHtml = refreshBtn.innerHTML;
+            
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            refreshBtn.disabled = true;
+            
+            loadBorrowingRequests();
+            
+            setTimeout(() => {
+                refreshBtn.innerHTML = originalHtml;
+                refreshBtn.disabled = false;
+            }, 1000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        function showErrorMessage(message) {
+            const tbody = document.getElementById('requestsTableBody');
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #dc3545;">${message}</td></tr>`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBorrowingRequests();
+        });
+    </script>
+</body>
+</html>

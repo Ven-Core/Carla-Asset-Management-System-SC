@@ -1,0 +1,248 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: #f5f7fa;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Header Styles */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 20px 0;
+    position: relative;
+}
+
+.header h1 {
+    color: #1B5E20;
+    font-size: 28px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    margin-left: 80px;
+    flex: 1;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.logout-btn:hover {
+    background: white;
+    color: #1a6c25;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 250px;
+    background: #1a6c25;
+    color: white;
+    padding: 80px 0 20px 0;
+    height: 100vh;
+    position: fixed;
+}
+
+.sidebar-menu {
+    list-style: none;
+}
+
+.sidebar-menu li {
+    padding: 15px 25px;
+    cursor: pointer;
+    transition: background 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar-menu li:hover, .sidebar-menu li.active {
+    background: #2e7d32;
+}
+
+.sidebar-menu li i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Main Content Styles */
+.main-content {
+    flex: 1;
+    margin-left: 250px;
+    background: linear-gradient(135deg, #4CAF50, #8BC34A);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.page-title {
+    color: #1a6c25;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #81c784;
+    font-size: 24px;
+}
+
+/* Maintenance Grid */
+.maintenance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.maintenance-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.maintenance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.maintenance-header h4 {
+    color: #1a6c25;
+    font-size: 18px;
+}
+
+.maintenance-priority {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.maintenance-priority.high {
+    background: #ffcdd2;
+    color: #d32f2f;
+}
+
+.maintenance-priority.medium {
+    background: #fff8e1;
+    color: #ac8329;
+}
+
+.maintenance-priority.low {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.maintenance-details {
+    margin-bottom: 20px;
+}
+
+.maintenance-details p {
+    margin-bottom: 8px;
+    color: #666;
+}
+
+.maintenance-details strong {
+    color: #1a6c25;
+}
+
+.maintenance-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.btn-success {
+    background: #e8f5e8;
+    color: #1a6c25;
+}
+
+.btn-info {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .sidebar {
+        width: 80px;
+        padding-top: 70px;
+    }
+    
+    .sidebar-menu li span {
+        display: none;
+    }
+    
+    .main-content {
+        margin-left: 80px;
+    }
+    
+    .maintenance-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .header h1 {
+        font-size: 18px;
+    }
+    
+    .sidebar {
+        width: 0;
+        overflow: hidden;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .maintenance-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}

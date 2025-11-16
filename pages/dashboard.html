@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MANDAUE CITY COLLEGE - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/asset-dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="../img/mcc.png" alt="Mandaue City College Logo" class="logo">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item active">
+                        <span>Home</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='asset-dashboard.html'">
+                        <span>Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='departments.html'">
+                        <span>Department</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrow-application.html'">
+                        <span>Borrow Application</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowing-request.html'">
+                        <span>Borrowing Request</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowed-assets.html'">
+                        <span>Borrowed Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='maintenance.html'">
+                        <span>Under maintenance</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='inactive-assets.html'">
+                        <span>Inactive asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='reports.html'">
+                        <span>Log Out</span>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>MANDAUE CITY COLLEGE ASSET MANAGEMENT SYSTEM</h1>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-assets">0</h3>
+                        <p>Total Assets</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="borrowed-assets">0</h3>
+                        <p>Borrowed Assets</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="maintenance-assets">0</h3>
+                        <p>Under Maintenance</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="inactive-assets">0</h3>
+                        <p>Inactive Assets</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activities -->
+            <div class="content-section">
+                <h3>Recent Activities</h3>
+                <div class="activity-list" id="activity-list">
+                    <!-- Activities will be populated by JavaScript -->
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- <script src="../js/dashboard.js"></script> -->
+    <script>
+        // Dashboard functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize dashboard
+    initializeDashboard();
+    
+    // Add event listeners
+    addEventListeners();
+});
+
+// HAVEN
+function initializeDashboard() {
+    updateStats();
+    loadRecentActivities();
+}
+
+function updateStats() {
+    fetchAssetData();
+}
+
+function fetchAssetData() {
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.innerHTML = 'Refreshing <span class="loading"></span>';
+        refreshBtn.disabled = true;
+    }
+    fetch('../Api/assets/dashconfig.php?action=getAssetStats')
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                updateDashboard(data.data);
+                document.getElementById('last-updated').textContent = new Date().toLocaleString();
+                showNotification('Data refreshed successfully!', 'success');
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            
+            // Fallback to sample data if API fails
+            const stats = {
+                total: 0,
+                borrowed: 0,
+                maintenance: 0,
+                inactive: 0
+            };
+            
+            updateDashboard(stats);
+            document.getElementById('last-updated').textContent = new Date().toLocaleString() + ' (Sample Data)';
+            showNotification('Using sample data - API connection failed', 'warning');
+        })
+        .finally(() => {
+            if (refreshBtn) {
+                refreshBtn.textContent = 'Refresh Data';
+                refreshBtn.disabled = false;
+            }
+        });
+}
+
+function updateDashboard(data) {
+    animateCounter('total-assets', data.total);
+    animateCounter('borrowed-assets', data.borrowed);
+    animateCounter('maintenance-assets', data.maintenance);
+    animateCounter('inactive-assets', data.inactive);
+}
+
+function animateCounter(elementId, finalValue) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    let currentValue = 0;
+    const increment = finalValue / 30;
+    
+    const timer = setInterval(() => {
+        currentValue += increment;
+        if (currentValue >= finalValue) {
+            element.textContent = finalValue;
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.floor(currentValue);
+        }
+    }, 50);
+}
+
+function loadRecentActivities() {
+    fetch('assets_api.php?action=getRecentActivities')
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                displayActivities(data.activities);
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching activities:', error);
+            // Way mahitabo kay way kamo.
+            displayActivities(sampleActivities);
+        });
+}
+
+function displayActivities(activities) {
+    const activityList = document.getElementById('activity-list');
+    if (!activityList) return;
+    
+    activityList.innerHTML = activities.map(activity => {
+        // Format the description
+        let description = activity.description;
+        if (!description && activity.asset_name && activity.asset_code) {
+            description = `${activity.asset_name} - ${activity.asset_code}`;
+        } else if (!description && activity.asset_code) {
+            description = `Asset ${activity.asset_code}`;
+        }
+        
+        // Format the time
+        let timeDisplay = activity.time;
+        if (activity.time && typeof activity.time === 'string') {
+            const activityTime = new Date(activity.time);
+            const now = new Date();
+            const diffInHours = Math.floor((now - activityTime) / (1000 * 60 * 60));
+            
+            if (diffInHours < 1) {
+                timeDisplay = 'Just now';
+            } else if (diffInHours < 24) {
+                timeDisplay = `${diffInHours} hours ago`;
+            } else {
+                const diffInDays = Math.floor(diffInHours / 24);
+                timeDisplay = `${diffInDays} days ago`;
+            }
+        }
+        
+        return `
+            <div class="activity-item">
+                <div class="activity-icon ${activity.color}">
+                    <i class="${activity.icon}"></i>
+                </div>
+                <div class="activity-content">
+                    <h4>${activity.title}</h4>
+                    <p>${description}</p>
+                    ${activity.performed_by ? `<small>By: ${activity.performed_by}</small><br>` : ''}
+                    <small class="activity-time">${timeDisplay}</small>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    // If no activities found
+    if (activities.length === 0) {
+        activityList.innerHTML = `
+            <div class="activity-item">
+                <div class="activity-content">
+                    <p>No recent activities found</p>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function addEventListeners() {
+    // Refresh button functionality
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            fetchAssetData();
+        });
+    }
+    
+    // Auto refresh button functionality
+    const autoRefreshBtn = document.getElementById('auto-refresh-btn');
+    if (autoRefreshBtn) {
+        autoRefreshBtn.addEventListener('click', function() {
+            toggleAutoRefresh();
+        });
+    }
+    
+    // Review button functionality
+    const reviewButtons = document.querySelectorAll('.btn-primary');
+    reviewButtons.forEach(btn => {
+        if (btn.textContent.includes('Review')) {
+            btn.addEventListener('click', function() {
+                window.location.href = 'borrow-application.html';
+            });
+        }
+    });
+    
+    // Assign button functionality
+    const assignButtons = document.querySelectorAll('.btn-warning');
+    assignButtons.forEach(btn => {
+        if (btn.textContent.includes('Assign')) {
+            btn.addEventListener('click', function() {
+                window.location.href = 'maintenance.html';
+            });
+        }
+    });
+}
+
+// Auto refresh functionality
+let autoRefreshInterval = null;
+let isAutoRefresh = true;
+
+function toggleAutoRefresh() {
+    const btn = document.getElementById('auto-refresh-btn');
+    if (!btn) return;
+    
+    if (isAutoRefresh) {
+        clearInterval(autoRefreshInterval);
+        btn.textContent = 'Auto Refresh: OFF';
+        btn.style.background = '#dc3545';
+        showNotification('Auto refresh disabled', 'warning');
+    } else {
+        autoRefreshInterval = setInterval(fetchAssetData, 30000);
+        btn.textContent = 'Auto Refresh: ON';
+        btn.style.background = '#28a745';
+        showNotification('Auto refresh enabled', 'success');
+    }
+    isAutoRefresh = !isAutoRefresh;
+}
+
+// Start auto refresh when page loads
+function startAutoRefresh() {
+    if (isAutoRefresh) {
+        autoRefreshInterval = setInterval(fetchAssetData, 30000);
+    }
+}
+
+// Initialize auto refresh
+document.addEventListener('DOMContentLoaded', function() {
+    startAutoRefresh();
+});
+
+// Utility functions
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    // Add styles based on type
+    const styles = {
+        info: 'background: #17a2b8; color: white;',
+        success: 'background: #28a745; color: white;',
+        warning: 'background: #ffc107; color: black;',
+        error: 'background: #dc3545; color: white;'
+    };
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        ${styles[type] || styles.info}
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Error handling for missing elements
+function handleMissingElements() {
+    const requiredElements = ['total-assets', 'borrowed-assets', 'maintenance-assets', 'inactive-assets'];
+    
+    requiredElements.forEach(id => {
+        if (!document.getElementById(id)) {
+            console.warn(`Element with id '${id}' not found`);
+        }
+    });
+}
+
+// Initialize error handling
+document.addEventListener('DOMContentLoaded', function() {
+    handleMissingElements();
+});
+    </script>
+</body>
+</html>

@@ -1,0 +1,1990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MANDAUE CITY COLLEGE - Asset Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/asset-dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="../img/mcc.png" alt="Mandaue City College Logo" class="logo">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                        <span>Home</span>
+                    </li>
+                    <li class="nav-item active">
+                        <span>Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='departments.html'">
+                        <span>Department</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrow-application.html'">
+                        <span>Borrow Application</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowing-request.html'">
+                        <span>Borrowing Request</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowed-assets.html'">
+                        <span>Borrowed Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='maintenance.html'">
+                        <span>Under maintenance</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='inactive-assets.html'">
+                        <span>Inactive asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='reports.html'">
+                        <span>Log Out</span>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>MANDAUE CITY COLLEGE ASSET MANAGEMENT SYSTEM</h1>
+            </div>
+            
+            <!-- Dashboard Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-assets">0</h3>
+                        <p>Total Assets</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="borrowed-assets">0</h3>
+                        <p>Borrowed Assets</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="maintenance-assets">0</h3>
+                        <p>Under Maintenance</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="inactive-assets">0</h3>
+                        <p>Inactive Assets</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Asset List</h2>
+                    <div class="table-actions">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Search assets...">
+                        </div>
+                        <button class="filter-btn">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                    </div>
+                </div>
+                <table class="asset-table">
+                    <thead>
+                        <tr>
+                            <th>Asset Tag</th>
+                            <th>Asset Name</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assetTableBody">
+                        <!-- Assets will be loaded dynamically -->
+                    </tbody>
+                </table>
+                <div class="table-footer">
+                    <div class="pagination">
+                        <button class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                        <span class="page-info">Page 1 of 1</span>
+                        <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <script src="../js/asset-dashboard-clean.js"></script> -->
+    <!-- Dashboard Clen ni siya -->
+    <script>
+// DOM Elements
+const searchInput = document.getElementById('searchInput');
+const assetTableBody = document.getElementById('assetTableBody');
+
+// Stats Elements
+const totalAssetsEl = document.getElementById('totalAssets');
+const activeAssetsEl = document.getElementById('activeAssets');
+const maintenanceAssetsEl = document.getElementById('maintenanceAssets');
+const inactiveAssetsEl = document.getElementById('inactiveAssets');
+
+let currentAssets = [];
+
+// New Asset Table JS
+// Load assets from database
+function loadAssets() {
+    fetch('../Api/assets/asset-dash.php?action=getAssets')
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                displayAssets(data.assets);
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading assets:', error);
+            showNotification('Error loading assets: ' + error.message, 'error');
+        });
+}
+
+function displayAssets(assets) {
+    const tableBody = document.getElementById('assetTableBody');
+    if (!tableBody) return;
+
+    if (assets.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="no-data">No assets found</td>
+            </tr>
+        `;
+        return;
+    }
+
+    tableBody.innerHTML = assets.map(asset => `
+        <tr data-asset-id="${asset.id}">
+            <td>${asset.serial_number || 'N/A'}</td>
+            <td>${asset.name}</td>
+            <td>${asset.category_name || 'Uncategorized'}</td>
+            <td>
+                <span class="status-badge status-${asset.status}">
+                    ${getStatusDisplayName(asset.status)}
+                </span>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-primary btn-sm" onclick="viewAsset(${asset.id})">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="openEditModal(${asset.id})">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteAssetFromTable('${asset.serial_number || asset.name}', ${asset.id})">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function displayAssets(assets) {
+    const tableBody = document.getElementById('assetTableBody');
+    if (!tableBody) return;
+
+    if (assets.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="no-data">No assets found</td>
+            </tr>
+        `;
+        return;
+    }
+
+    tableBody.innerHTML = assets.map(asset => `
+        <tr data-asset-id="${asset.id}">
+            <td>${asset.serial_number || 'N/A'}</td>
+            <td>${asset.name}</td>
+            <td>${asset.category_name || 'Uncategorized'}</td>
+            <td>
+                <span class="status-badge status-${asset.status}">
+                    ${getStatusDisplayName(asset.status)}
+                </span>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-primary btn-sm" onclick="openViewModal(${asset.id})">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="openEditModal(${asset.id})">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteAssetFromTable('${asset.serial_number || asset.name}', ${asset.id})">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Open View Modal
+function openViewModal(assetId) {
+    console.log('Opening view modal for asset ID:', assetId);
+    
+    const asset = currentAssets.find(a => parseInt(a.id) === parseInt(assetId));
+    
+    if (!asset) {
+        showNotification('Asset not found', 'error');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'view-asset-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Asset Details</h3>
+                <button class="close-btn" onclick="closeViewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="asset-details">
+                    <div class="detail-section">
+                        <h4>Basic Information</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Serial Number:</label>
+                                <span>${asset.serial_number || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Asset Name:</label>
+                                <span>${asset.name || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Description:</label>
+                                <span>${asset.description || 'No description'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Classification</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Category:</label>
+                                <span>${asset.category_name || 'Uncategorized'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Department:</label>
+                                <span>${asset.department_name || 'Not assigned'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Status:</label>
+                                <span class="status-badge status-${asset.status}">
+                                    ${getStatusDisplayName(asset.status)}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Condition:</label>
+                                <span class="condition-badge condition-${asset.condition_status}">
+                                    ${getConditionDisplayName(asset.condition_status)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Purchase Information</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Purchase Date:</label>
+                                <span>${formatDisplayDate(asset.purchase_date) || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Purchase Cost:</label>
+                                <span>${asset.purchase_cost ? '$' + parseFloat(asset.purchase_cost).toFixed(2) : 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Supplier:</label>
+                                <span>${asset.supplier || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Warranty Expiry:</label>
+                                <span>${formatDisplayDate(asset.warranty_expiry) || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Location & Notes</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Location:</label>
+                                <span>${asset.location || 'Not specified'}</span>
+                            </div>
+                            <div class="detail-item full-width">
+                                <label>Notes:</label>
+                                <span>${asset.notes || 'No notes available'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>System Information</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Created:</label>
+                                <span>${formatDisplayDateTime(asset.created_at) || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Last Updated:</label>
+                                <span>${formatDisplayDateTime(asset.updated_at) || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeViewModal()">Close</button>
+                <button type="button" class="btn btn-warning" onclick="closeViewModal(); openEditModal(${asset.id});">
+                    <i class="fas fa-edit"></i> Edit Asset
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    window.currentViewModal = modal;
+}
+
+// Close View Modal
+function closeViewModal() {
+    if (window.currentViewModal) {
+        window.currentViewModal.remove();
+        window.currentViewModal = null;
+    }
+}
+
+function getConditionDisplayName(condition) {
+    const conditionMap = {
+        'excellent': 'Excellent',
+        'good': 'Good',
+        'fair': 'Fair',
+        'poor': 'Poor'
+    };
+    return conditionMap[condition] || condition;
+}
+
+function formatDisplayDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? '' : date.toLocaleDateString();
+}
+
+function formatDisplayDateTime(dateTimeString) {
+    if (!dateTimeString) return '';
+    const date = new Date(dateTimeString);
+    return isNaN(date.getTime()) ? '' : date.toLocaleString();
+}
+
+// For View Modal ni
+const viewModalStyles = `
+<style>
+.view-asset-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.view-asset-modal .modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.view-asset-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid #e9ecef;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+
+.view-asset-modal .modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.view-asset-modal .close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-asset-modal .close-btn:hover {
+    color: #ffd700;
+}
+
+.view-asset-modal .modal-body {
+    padding: 25px;
+}
+
+.asset-details {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.detail-section h4 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.detail-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.detail-item label {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.detail-item span {
+    color: #2c3e50;
+    font-size: 1rem;
+    word-break: break-word;
+}
+
+.condition-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+    display: inline-block;
+    width: fit-content;
+}
+
+.condition-excellent {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.condition-good {
+    background: #d1edff;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.condition-fair {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.condition-poor {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.view-asset-modal .modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 20px 25px;
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+}
+
+@media (max-width: 768px) {
+    .view-asset-modal .modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .view-asset-modal .modal-footer {
+        flex-direction: column;
+    }
+    
+    .view-asset-modal .modal-footer button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .view-asset-modal .modal-body {
+        padding: 15px;
+    }
+    
+    .view-asset-modal .modal-header,
+    .view-asset-modal .modal-footer {
+        padding: 15px 20px;
+    }
+}
+</style>
+`;
+
+document.head.insertAdjacentHTML('beforeend', viewModalStyles);
+
+// Open Edit Modal - FIXED WITH PROPER CATEGORY/DEPARTMENT NAMES
+function openEditModal(assetId) {
+    console.log('=== EDIT MODAL DEBUG ===');
+    console.log('Requested asset ID:', assetId, 'Type:', typeof assetId);
+    console.log('Current assets:', currentAssets);
+    
+    // Find the asset data with proper type conversion
+    const asset = currentAssets.find(a => {
+        console.log('Comparing:', a.id, 'Type:', typeof a.id, 'with', assetId, 'Type:', typeof assetId);
+        return parseInt(a.id) === parseInt(assetId);
+    });
+    
+    if (!asset) {
+        console.error('Asset not found. Available IDs:', currentAssets.map(a => a.id));
+        showNotification('Asset not found. Please refresh the page.', 'error');
+        return;
+    }
+
+    console.log('Found asset:', asset);
+
+    const modal = document.createElement('div');
+    modal.className = 'edit-asset-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Asset - ${asset.name || 'Unnamed Asset'}</h3>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editAssetForm" onsubmit="handleEditSubmit(event, ${parseInt(assetId)})">
+                    <div class="form-group">
+                        <label for="editSerialNumber">Serial Number *</label>
+                        <input type="text" id="editSerialNumber" value="${asset.serial_number || ''}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editAssetName">Asset Name *</label>
+                        <input type="text" id="editAssetName" value="${asset.name || ''}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editDescription">Description</label>
+                        <textarea id="editDescription" rows="3">${asset.description || ''}</textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editCategory">Category *</label>
+                            <select id="editCategory" required>
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editDepartment">Department *</label>
+                            <select id="editDepartment" required>
+                                <option value="">Select Department</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editStatus">Status *</label>
+                            <select id="editStatus" required>
+                                <option value="active" ${asset.status === 'active' ? 'selected' : ''}>Active</option>
+                                <option value="borrowed" ${asset.status === 'borrowset' ? 'selected' : ''}>Borrowed</option>
+                                <option value="maintenance" ${asset.status === 'maintenance' ? 'selected' : ''}>Maintenance</option>
+                                <option value="inactive" ${asset.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editCondition">Condition *</label>
+                            <select id="editCondition" required>
+                                <option value="excellent" ${asset.condition_status === 'excellent' ? 'selected' : ''}>Excellent</option>
+                                <option value="good" ${asset.condition_status === 'good' ? 'selected' : ''}>Good</option>
+                                <option value="fair" ${asset.condition_status === 'fair' ? 'selected' : ''}>Fair</option>
+                                <option value="poor" ${asset.condition_status === 'poor' ? 'selected' : ''}>Poor</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editPurchaseDate">Purchase Date</label>
+                            <input type="date" id="editPurchaseDate" value="${formatDateForInput(asset.purchase_date)}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editPurchaseCost">Purchase Cost</label>
+                            <input type="number" id="editPurchaseCost" step="0.01" value="${asset.purchase_cost || ''}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editSupplier">Supplier</label>
+                        <input type="text" id="editSupplier" value="${asset.supplier || ''}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editWarranty">Warranty Expiry</label>
+                        <input type="date" id="editWarranty" value="${formatDateForInput(asset.warranty_expiry)}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editLocation">Location</label>
+                        <input type="text" id="editLocation" value="${asset.location || ''}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editNotes">Notes</label>
+                        <textarea id="editNotes" rows="3">${asset.notes || ''}</textarea>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Asset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    window.currentEditModal = modal;
+    
+    // Load categories and departments with current values
+    loadCategoriesAndDepartments(asset.category_id, asset.department_id);
+}
+
+// Load Categories and Departments with pre-selection
+function loadCategoriesAndDepartments(categoryId = null, departmentId = null) {
+    console.log('Loading categories and departments:', {categoryId, departmentId});
+    
+    // Load categories from asset_categories table
+    fetch('../Api/assets/asset-dash.php?action=getCategories')
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const categorySelect = document.getElementById('editCategory');
+                let options = '<option value="">Select Category</option>';
+                
+                data.categories.forEach(cat => {
+                    const selected = (categoryId && parseInt(categoryId) === parseInt(cat.id)) ? 'selected' : '';
+                    options += `<option value="${cat.id}" ${selected}>${cat.name}</option>`;
+                });
+                
+                categorySelect.innerHTML = options;
+                console.log('Categories loaded and pre-selected:', categoryId);
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading categories:', error);
+            showNotification('Error loading categories', 'error');
+        });
+
+    // Load departments from departments table
+    fetch('../Api/assets/asset-dash.php?action=getDepartments')
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const deptSelect = document.getElementById('editDepartment');
+                let options = '<option value="">Select Department</option>';
+                
+                data.departments.forEach(dept => {
+                    const selected = (departmentId && parseInt(departmentId) === parseInt(dept.id)) ? 'selected' : '';
+                    options += `<option value="${dept.id}" ${selected}>${dept.name}</option>`;
+                });
+                
+                deptSelect.innerHTML = options;
+                console.log('Departments loaded and pre-selected:', departmentId);
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading departments:', error);
+            showNotification('Error loading departments', 'error');
+        });
+}
+
+// Make sure these PHP endpoints exist in your asset-dash.php:
+
+// Add this function if missing
+function formatDateForInput(dateString) {
+    if (!dateString) return '';
+    
+    // If it's already in YYYY-MM-DD format, return as is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        return dateString;
+    }
+    
+    // Try to parse other date formats
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    
+    return date.toISOString().split('T')[0];
+}
+
+// Handle Edit Form Submission
+function handleEditSubmit(event, assetId) {
+    event.preventDefault();
+    
+    const formData = {
+        serial_number: document.getElementById('editSerialNumber').value,
+        name: document.getElementById('editAssetName').value,
+        description: document.getElementById('editDescription').value,
+        category_id: document.getElementById('editCategory').value,
+        department_id: document.getElementById('editDepartment').value,
+        status: document.getElementById('editStatus').value,
+        condition_status: document.getElementById('editCondition').value,
+        purchase_date: document.getElementById('editPurchaseDate').value,
+        purchase_cost: document.getElementById('editPurchaseCost').value,
+        supplier: document.getElementById('editSupplier').value,
+        warranty_expiry: document.getElementById('editWarranty').value,
+        location: document.getElementById('editLocation').value,
+        notes: document.getElementById('editNotes').value
+    };
+    
+    updateAsset(assetId, formData);
+}
+
+// Update Asset - AYAWA HILABTI ANG DEBUG FOR INSPECTION NA IF NAA BA ERROR ARI DAPITA
+function updateAsset(assetId, formData) {
+    const submitBtn = document.querySelector('#editAssetForm button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = 'Updating... <span class="loading"></span>';
+    submitBtn.disabled = true;
+
+    console.log('=== UPDATE DEBUG ===');
+    console.log('Asset ID to update:', assetId, 'Type:', typeof assetId);
+    console.log('Current assets:', currentAssets);
+    console.log('Form data:', formData);
+
+    // Check if asset exists in currentAssets
+    const assetExists = currentAssets.find(a => parseInt(a.id) === parseInt(assetId));
+    console.log('Asset found in currentAssets:', assetExists);
+
+    fetch(`../Api/assets/asset-dash.php?action=updateAsset&id=${assetId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.text().then(text => {
+            console.log('Raw response:', text);
+            try {
+                return JSON.parse(text);
+            } catch(e) {
+                throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+            }
+        });
+    })
+    .then(data => {
+        console.log('Parsed data:', data);
+        if (data.success) {
+            showNotification('Asset updated successfully', 'success');
+            closeEditModal();
+            loadAssets();
+        } else {
+            throw new Error(data.error || 'Update failed');
+        }
+    })
+    .catch(error => {
+        console.error('Update error:', error);
+        showNotification(`Update failed: ${error.message}`, 'error');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+// Close Edit Modal
+function closeEditModal() {
+    if (window.currentEditModal) {
+        window.currentEditModal.remove();
+        window.currentEditModal = null;
+    }
+}
+
+// Add these CSS styles
+const editModalStyles = `
+<style>
+.edit-asset-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.edit-asset-modal .modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.edit-asset-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.edit-asset-modal .modal-header h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.edit-asset-modal .close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-asset-modal .close-btn:hover {
+    color: #dc3545;
+}
+
+.edit-asset-modal .modal-body {
+    padding: 25px;
+}
+
+.edit-asset-modal .form-group {
+    margin-bottom: 20px;
+}
+
+.edit-asset-modal .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.edit-asset-modal label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.edit-asset-modal input,
+.edit-asset-modal select,
+.edit-asset-modal textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.edit-asset-modal input:focus,
+.edit-asset-modal select:focus,
+.edit-asset-modal textarea:focus {
+    outline: none;
+    border-color: #2575fc;
+    box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.1);
+}
+
+.edit-asset-modal .modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 20px 0 0;
+    border-top: 1px solid #e9ecef;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .edit-asset-modal .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .edit-asset-modal .modal-content {
+        width: 95%;
+    }
+}
+</style>
+`;
+
+// Add styles to document Directly
+document.head.insertAdjacentHTML('beforeend', editModalStyles);
+
+function getStatusDisplayName(status) {
+    const statusMap = {
+        'active': 'Active',
+        'borrowset': 'Borrowed',
+        'maintenance': 'Maintenance',
+        'inactive': 'Inactive'
+    };
+    return statusMap[status] || status;
+}
+
+function viewAsset(assetId) {
+    window.location.href = `asset-details.html?id=${assetId}`;
+}
+
+function editAsset(assetId) {
+    window.location.href = `edit-asset.html?id=${assetId}`;
+}
+
+function deleteAssetFromTable(serialNumber, assetId) {
+    const modal = document.createElement('div');
+    modal.className = 'delete-confirmation-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+            </div>
+            <div class="modal-body">
+                <div class="warning-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <p>Are you sure you want to delete asset <strong>${serialNumber}</strong>?</p>
+                <p class="warning-text">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirm-delete-btn" data-serial="${serialNumber}" data-assetid="${assetId}">Delete</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.querySelector('#confirm-delete-btn').addEventListener('click', handleDeleteConfirm);
+    window.currentDeleteModal = modal;
+}
+
+function handleDeleteConfirm(event) {
+    const button = event.target;
+    const serialNumber = button.getAttribute('data-serial');
+    const assetId = button.getAttribute('data-assetid');
+    
+    confirmDelete(serialNumber, assetId, button);
+}
+
+function confirmDelete(serialNumber, assetId, deleteButton = null) {
+    const deleteBtn = deleteButton || 
+        (window.currentDeleteModal ? 
+            window.currentDeleteModal.querySelector('#confirm-delete-btn') : 
+            document.querySelector('#confirm-delete-btn')
+        );
+    
+    if (!deleteBtn) {
+        showNotification('Error: Delete button not found', 'error');
+        return;
+    }
+
+    const originalText = deleteBtn.innerHTML;
+    deleteBtn.innerHTML = 'Deleting... <span class="loading"></span>';
+    deleteBtn.disabled = true;
+
+    const apiUrl = `../Api/assets/asset-dash.php?action=deleteAsset&id=${assetId}`;
+    console.log('Calling API:', apiUrl);
+
+    fetch(apiUrl)
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            const row = document.querySelector(`tr[data-asset-id="${assetId}"]`);
+            if (row) {
+                row.style.transition = 'all 0.3s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-100px)';
+                
+                setTimeout(() => {
+                    row.remove();
+                    const totalAssetsElement = document.getElementById('total-assets');
+                    if (totalAssetsElement) {
+                        const currentTotal = parseInt(totalAssetsElement.textContent) || 0;
+                    }
+                }, 300);
+            }
+            
+            closeDeleteModal();
+            showNotification(`Asset ${serialNumber} permanently deleted`, 'success');
+            updateStats();
+        } else {
+            throw new Error(data.error || 'Failed to delete asset');
+        }
+    })
+    .catch(error => {
+        console.error('Delete error:', error);
+        showNotification(`Delete failed: ${error.message}`, 'error');
+        deleteBtn.innerHTML = originalText;
+        deleteBtn.disabled = false;
+    });
+}
+
+function closeDeleteModal() {
+    if (window.currentDeleteModal) {
+        window.currentDeleteModal.remove();
+        window.currentDeleteModal = null;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadAssets();
+});
+//END
+
+// Initialize the dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    updateDashboard();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    // Search input
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            searchAssets(e.target.value);
+        });
+    }
+    
+    // Filter button
+    const filterBtn = document.querySelector('.filter-btn');
+    if (filterBtn) {
+        filterBtn.addEventListener('click', () => {
+            // Implement filter modal/functionality here
+            alert('Filter functionality will be implemented here');
+        });
+    }
+}
+
+// Update dashboard with data
+// Initialize the dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDashboard();
+    setupEventListeners();
+});
+
+function initializeDashboard() {
+    loadAssets(); // This will populate currentAssets and update the dashboard
+}
+
+function setupEventListeners() {
+    // Search input
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            searchAssets(e.target.value);
+        });
+    }
+    
+    // Filter button
+    const filterBtn = document.querySelector('.filter-btn');
+    if (filterBtn) {
+        filterBtn.addEventListener('click', () => {
+            alert('Filter functionality will be implemented here');
+        });
+    }
+}
+
+// Load assets from API
+function loadAssets() {
+    fetch('../Api/assets/asset-dash.php?action=getAssets')
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                currentAssets = data.assets; // Store assets globally
+                updateDashboard();
+                displayAssets(data.assets);
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading assets:', error);
+            showNotification('Error loading assets: ' + error.message, 'error');
+            // Fallback to empty array
+            currentAssets = [];
+            updateDashboard();
+        });
+}
+
+// Update dashboard with data
+function updateDashboard() {
+    updateStats();
+}
+
+// Update statistics cards
+function updateStats() {
+    const total = currentAssets.length;
+    const active = currentAssets.filter(asset => asset.status === 'active').length;
+    const borrowed = currentAssets.filter(asset => asset.status === 'borrowset').length;
+    const maintenance = currentAssets.filter(asset => asset.status === 'maintenance').length;
+    const inactive = currentAssets.filter(asset => asset.status === 'inactive').length;
+    
+    // Update the DOM elements
+    const totalAssetsEl = document.getElementById('total-assets');
+    const borrowedAssetsEl = document.getElementById('borrowed-assets');
+    const maintenanceAssetsEl = document.getElementById('maintenance-assets');
+    const inactiveAssetsEl = document.getElementById('inactive-assets');
+    
+    if (totalAssetsEl) totalAssetsEl.textContent = total;
+    if (borrowedAssetsEl) borrowedAssetsEl.textContent = borrowed;
+    if (maintenanceAssetsEl) maintenanceAssetsEl.textContent = maintenance;
+    if (inactiveAssetsEl) inactiveAssetsEl.textContent = inactive;
+}
+
+// Search functionality
+function searchAssets(searchTerm) {
+    const filteredAssets = currentAssets.filter(asset => 
+        asset.serial_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        asset.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        asset.category_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    displayAssets(filteredAssets);
+}
+
+// Get display name for status
+function getStatusDisplayName(status) {
+    const statusMap = {
+        'active': 'Active',
+        'borrowset': 'Borrowed',
+        'maintenance': 'Maintenance',
+        'inactive': 'Inactive'
+    };
+    return statusMap[status] || status;
+}
+
+// View asset details
+function viewAsset(assetId) {
+    window.location.href = `asset-details.html?id=${assetId}`;
+}
+
+// Edit asset
+function editAsset(assetId) {
+    window.location.href = `edit-asset.html?id=${assetId}`;
+}
+
+// Refresh stats after delete
+function refreshStatsAfterDelete() {
+    loadAssets();
+}
+
+// Format status text
+function formatStatus(status) {
+    return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+// Search functionality
+function searchAssets(query) {
+    const searchTerm = query.toLowerCase().trim();
+    if (!searchTerm) {
+        displayAssets(loadAssets);
+        return;
+    }
+    
+    const filtered = loadAssets.filter(asset => 
+        asset.serial_number.toLowerCase().includes(searchTerm) ||
+        asset.name.toLowerCase().includes(searchTerm) ||
+        asset.category.toLowerCase().includes(searchTerm) ||
+        asset.department_name.toLowerCase().includes(searchTerm) ||
+        asset.status.toLowerCase().includes(searchTerm)
+    );
+    
+    displayAssets(filtered);
+}
+
+// Filter assets based on search and filter criteria
+document.addEventListener('DOMContentLoaded', function() {
+    initializeAssetDashboard();
+    addEventListeners();
+});
+
+async function initializeAssetDashboard() {
+    // Initialize search and filter functionality
+    await setupSearchAndFilter();
+}
+
+async function setupSearchAndFilter() {
+    const searchInput = document.getElementById('searchInput');
+    const departmentFilter = document.getElementById('departmentFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', filterAssets);
+    }
+    
+    if (departmentFilter) {
+        departmentFilter.addEventListener('change', filterAssets);
+    }
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterAssets);
+    }
+}
+
+function addEventListeners() {
+    // Search button is handled inline now via openSearchModal(); no extra listener to avoid duplicate handling
+    
+    // Clear filters button
+    const clearBtn = document.querySelector('.clear-btn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearFilters);
+    }
+}
+
+function toggleSearch() {
+    const searchSection = document.getElementById('searchSection');
+    if (searchSection) {
+        if (searchSection.style.display === 'none') {
+            searchSection.style.display = 'block';
+        } else {
+            searchSection.style.display = 'none';
+        }
+    }
+}
+
+function createAssetRow(asset) {
+    const row = document.createElement('tr');
+    row.dataset.departmentId = asset.department_id || '';
+    row.dataset.assetId = asset.id;
+    row.innerHTML = `
+        <td>${asset.serial_number}</td>
+        <td>${asset.name}</td>
+        <td>${asset.department_name || 'N/A'}</td>
+        <td><span class="status-badge ${asset.status}">${asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}</span></td>
+        <td>
+            <button class="history-btn" onclick="viewHistory('${asset.serial_number}')">View</button>
+            <button class="action-btn edit" onclick="editAsset('${asset.serial_number}')">Edit</button>
+            <button class="action-btn delete" onclick="deleteAssetFromTable('${asset.serial_number}', ${asset.id})">Delete</button>
+        </td>
+    `;
+    return row;
+}
+
+function filterAssets() {
+    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    const departmentFilterValue = document.getElementById('departmentFilter')?.value || '';
+    const statusFilter = document.getElementById('statusFilter')?.value.toLowerCase() || '';
+    
+    const rows = document.querySelectorAll('.asset-table tbody tr');
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 4) {
+            const serialNum = cells[0].textContent.toLowerCase();
+            const name = cells[1].textContent.toLowerCase();
+            const department = cells[2].textContent.toLowerCase();
+            const status = cells[3].textContent.toLowerCase();
+            
+            const matchesSearch = !searchTerm || 
+                serialNum.includes(searchTerm) || 
+                name.includes(searchTerm) || 
+                department.includes(searchTerm);
+            
+            const matchesDepartment = !departmentFilterValue || 
+                row.dataset.departmentId === departmentFilterValue ||
+                department.includes(departmentFilterValue.toLowerCase());
+            
+            const matchesStatus = !statusFilter || 
+                status.includes(statusFilter);
+            
+            if (matchesSearch && matchesDepartment && matchesStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+}
+
+function clearFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const departmentFilter = document.getElementById('departmentFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    
+    if (searchInput) searchInput.value = '';
+    if (departmentFilter) departmentFilter.value = '';
+    if (statusFilter) statusFilter.value = '';
+    
+    const rows = document.querySelectorAll('.asset-table tbody tr');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+    
+    showNotification('Filters cleared', 'info');
+}
+
+function editAsset(assetId) {
+    const asset = loadAssets.find(a => a.serial_number === assetId);
+    
+    if (!asset) {
+        showNotification('Asset not found', 'error');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'edit-asset-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Asset - ${assetId}</h3>
+                <button class="close-modal" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="edit-asset-form">
+                    <div class="form-group">
+                        <label>Serial Number *</label>
+                        <input type="text" id="editSerialNumber" required value="${asset.serial_number}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Asset Name *</label>
+                        <input type="text" id="editAssetName" required value="${asset.name}">
+                    </div>
+                    <div class="form-group">
+                        <label>Department *</label>
+                        <select id="editAssetDepartment" required>
+                            <option value="">Select Department</option>
+                            <option value="School of Technology" ${asset.department_name === 'School of Technology' ? 'selected' : ''}>School of Technology</option>
+                            <option value="School of Education" ${asset.department_name === 'School of Education' ? 'selected' : ''}>School of Education</option>
+                            <option value="School of Business" ${asset.department_name === 'School of Business' ? 'selected' : ''}>School of Business</option>
+                            <option value="Computer Lab room 25" ${asset.department_name === 'Computer Lab room 25' ? 'selected' : ''}>Computer Lab room 25</option>
+                            <option value="Computer Lab room 22" ${asset.department_name === 'Computer Lab room 22' ? 'selected' : ''}>Computer Lab room 22</option>
+                            <option value="Speech Lab" ${asset.department_name === 'Speech Lab' ? 'selected' : ''}>Speech Lab</option>
+                            <option value="Library" ${asset.department_name === 'Library' ? 'selected' : ''}>Library</option>
+                            <option value="Clinic" ${asset.department_name === 'Clinic' ? 'selected' : ''}>Clinic</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="editStatus">
+                            <option value="active" ${asset.status === 'active' ? 'selected' : ''}>Active</option>
+                            <option value="borrowed" ${asset.status === 'borrowed' ? 'selected' : ''}>Borrowed</option>
+                            <option value="maintenance" ${asset.status === 'maintenance' ? 'selected' : ''}>Under Maintenance</option>
+                            <option value="inactive" ${asset.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveAssetEdit('${assetId}')">Save Changes</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    window.currentEditModal = modal;
+}
+
+function closeEditModal() {
+    if (window.currentEditModal) {
+        window.currentEditModal.remove();
+        window.currentEditModal = null;
+    }
+}
+
+function saveAssetEdit(assetId) {
+    const name = document.getElementById('editAssetName').value;
+    const department = document.getElementById('editAssetDepartment').value;
+    const status = document.getElementById('editStatus').value;
+    
+    if (!name || !department) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    const asset = loadAssets.find(a => a.serial_number === assetId);
+    if (asset) {
+        asset.name = name;
+        asset.department_name = department;
+        asset.status = status;
+    }
+    
+    closeEditModal();
+    showNotification(`Asset ${assetId} updated successfully`, 'success');
+}
+
+function viewHistory(serialNumber) {
+    alert(`Viewing transaction history for asset: ${serialNumber}`);
+}
+
+function addAsset() {
+    const modal = document.createElement('div');
+    modal.className = 'add-asset-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-body">
+                <form class="add-asset-form">
+                    <div class="form-group">
+                        <label>Serial Number *</label>
+                        <input type="text" id="addSerialNumber" required placeholder="Enter serial number">
+                    </div>
+                    <div class="form-group">
+                        <label>Asset Name *</label>
+                        <input type="text" id="addAssetName" required placeholder="Enter asset name">
+                    </div>
+                    <div class="form-group">
+                        <label>Department *</label>
+                        <select id="addAssetDepartment" required>
+                            <option value="">Select Department</option>
+                            <option value="School of Technology">School of Technology</option>
+                            <option value="School of Education">School of Education</option>
+                            <option value="School of Business">School of Business</option>
+                            <option value="Computer Lab room 25">Computer Lab room 25</option>
+                            <option value="Computer Lab room 22">Computer Lab room 22</option>
+                            <option value="Speech Lab">Speech Lab</option>
+                            <option value="Library">Library</option>
+                            <option value="Clinic">Clinic</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="addStatus">
+                            <option value="active">Active</option>
+                            <option value="borrowed">Borrowed</option>
+                            <option value="maintenance">Under Maintenance</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="addDescription" rows="3" placeholder="Enter asset description (optional)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNewAsset()">Add Asset</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    window.currentAddModal = modal;
+}
+
+function closeAddModal() {
+    if (window.currentAddModal) {
+        window.currentAddModal.remove();
+        window.currentAddModal = null;
+    }
+}
+
+function saveNewAsset() {
+    const serialNumber = document.getElementById('addSerialNumber').value.trim();
+    const name = document.getElementById('addAssetName').value.trim();
+    const department = document.getElementById('addAssetDepartment').value;
+    const status = document.getElementById('addStatus').value;
+    const description = document.getElementById('addDescription').value.trim();
+    
+    // Validation
+    if (!serialNumber || !name || !department) {
+        alert('Please fill in all required fields (Serial Number, Asset Name, Department)');
+        return;
+    }
+    
+    // Check if serial number already exists
+    const existingAsset = loadAssets.find(asset => asset.serial_number === serialNumber);
+    if (existingAsset) {
+        alert('Serial number already exists. Please use a different serial number.');
+        return;
+    }
+    
+    // Generate new ID
+    const newId = Math.max(...loadAssets.map(a => a.id)) + 1;
+    
+    // Create new asset object
+    const newAsset = {
+        id: newId,
+        serial_number: serialNumber,
+        name: name,
+        department_name: department,
+        status: status,
+        description: description
+    };
+    
+    // Add to sample data
+    loadAssets.push(newAsset);
+
+    // Close modal
+    closeAddModal();
+    
+    // Show success notification
+    showNotification(`Asset ${serialNumber} added successfully`, 'success');
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    
+    if (type === 'success') {
+        notification.style.backgroundColor = '#4caf50';
+    } else if (type === 'error') {
+        notification.style.backgroundColor = '#f44336';
+    } else {
+        notification.style.backgroundColor = '#2196f3';
+    }
+    
+    notification.style.cssText += `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 10000;
+        font-weight: 500;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Add CSS styles
+const style = document.createElement('style');
+style.textContent = `
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+    
+    .search-section {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    
+    .search-container {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .search-input, .filter-select {
+        padding: 10px 15px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .search-input:focus, .filter-select:focus {
+        outline: none;
+        border-color: #4caf50;
+    }
+    
+    .clear-btn {
+        background: #ff9800;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .clear-btn:hover {
+        background: #f57c00;
+        transform: translateY(-2px);
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .asset-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .asset-table th {
+        background: linear-gradient(135deg, #2e7d32, #4caf50);
+        color: white;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        border: none;
+    }
+    
+    .asset-table td {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+    }
+    
+    .asset-table tr:hover {
+        background: #f9f9f9;
+    }
+    
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-badge.active {
+        background: #e8f5e8;
+        color: #2e7d32;
+    }
+    
+    .status-badge.borrowed {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+    
+    .status-badge.maintenance {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+    
+    .status-badge.inactive {
+        background: #f5f5f5;
+        color: #666;
+    }
+    
+    .history-btn {
+        background: #2196f3;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s ease;
+        margin-right: 5px;
+    }
+    
+    .history-btn:hover {
+        background: #1976d2;
+        transform: translateY(-1px);
+    }
+    
+    .action-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        margin: 0 2px;
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn.edit {
+        background: #ff9800;
+        color: white;
+    }
+    
+    .action-btn.edit:hover {
+        background: #f57c00;
+    }
+    
+    .action-btn.delete {
+        background: #f44336;
+        color: white;
+    }
+    
+    .action-btn.delete:hover {
+        background: #d32f2f;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+    
+    .btn-primary {
+        background: #4caf50;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #45a049;
+    }
+    
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #c82333;
+    }
+    
+    .edit-asset-modal, .delete-confirmation-modal, .add-asset-modal, .search-asset-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        animation: slideUp 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8f9fa;
+    }
+    
+    .modal-header h3 {
+        margin: 0;
+        color: #333;
+        font-size: 18px;
+    }
+    
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .close-modal:hover {
+        color: #333;
+    }
+    
+    .modal-body {
+        padding: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .modal-footer {
+        padding: 20px;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        background: #f8f9fa;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+        font-family: inherit;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #4caf50;
+    }
+    
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+    
+    .form-group input[readonly] {
+        background: #f8f9fa;
+        color: #666;
+    }
+    
+    .warning-icon {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    
+    .warning-icon i {
+        font-size: 48px;
+        color: #ff9800;
+    }
+    
+    .warning-text {
+        color: #666;
+        font-size: 14px;
+        margin-top: 10px;
+        text-align: center;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+    }
+`;
+
+document.head.appendChild(style);
+    </script>
+</html>

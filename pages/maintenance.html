@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MANDAUE CITY COLLEGE - Maintenance</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/asset-dashboard.css">
+    <style>
+        .maintenance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .maintenance-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-left: 4px solid #ddd;
+        }
+
+        .maintenance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .maintenance-header h4 {
+            margin: 0;
+            color: #1e3c72;
+            font-size: 16px;
+        }
+
+        .maintenance-priority {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .maintenance-priority.high {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .maintenance-priority.medium {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .maintenance-priority.low {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .maintenance-details {
+            margin-bottom: 15px;
+        }
+
+        .maintenance-details p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .maintenance-details strong {
+            color: #333;
+        }
+
+        .maintenance-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-success {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            color: white;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.scheduled { background-color: #e3f2fd; color: #1565c0; }
+        .status-badge.in_progress { background-color: #fff3e0; color: #ef6c00; }
+        .status-badge.completed { background-color: #e7f4e4; color: #2e7d32; }
+        .status-badge.cancelled { background-color: #ffebee; color: #c62828; }
+
+        .no-maintenance {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .search-section {
+            background: white;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+
+        .clear-btn {
+            padding: 8px 16px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .search-btn {
+            margin: 20px;
+            padding: 10px 20px;
+            background: #1e3c72;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Status Dropdown Styles */
+        .status-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .status-dropdown-btn {
+            background: #17a2b8;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 140px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            z-index: 1001;
+            right: 0;
+            top: 100%;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .status-dropdown-content button {
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .status-dropdown-content button:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-dropdown-content button.scheduled { color: #1565c0; }
+        .status-dropdown-content button.in_progress { color: #ef6c00; }
+        .status-dropdown-content button.cancelled { color: #c62828; }
+
+        .status-dropdown:hover .status-dropdown-content {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="../img/mcc.png" alt="Mandaue City College Logo" class="logo">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                        <span>Home</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='asset-dashboard.html'">
+                        <span>Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='departments.html'">
+                        <span>Department</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrow-application.html'">
+                        <span>Borrow Application</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowing-request.html'">
+                        <span>Borrowing Request</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowed-assets.html'">
+                        <span>Borrowed Asset</span>
+                    </li>
+                    <li class="nav-item active">
+                        <span>Under maintenance</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='inactive-assets.html'">
+                        <span>Inactive asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='reports.html'">
+                        <span>Log Out</span>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>MANDAUE CITY COLLEGE ASSET MANAGEMENT SYSTEM</h1>
+            </div>
+
+            <button class="search-btn" onclick="toggleSearch()">
+                <i class="fas fa-search"></i> Search Maintenance
+            </button>
+            
+            <div class="search-section" id="searchSection" style="display: none;">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search by asset name, serial number, technician..." class="search-input">
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                    <select id="priorityFilter" class="filter-select">
+                        <option value="">All Priority</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                    <button class="clear-btn" onclick="clearFilters()">Clear</button>
+                </div>
+            </div>
+            
+            <div class="maintenance-grid" id="maintenanceGrid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading maintenance records...
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let allMaintenanceData = [];
+
+    function loadMaintenanceRecords() {
+        fetch('../Api/assets/maintenance.php?action=getAllMaintenance')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    allMaintenanceData = data.data;
+                    filterAndDisplayMaintenance();
+                } else {
+                    showErrorMessage('Failed to load maintenance records: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                showErrorMessage('Network error occurred: ' + error.message);
+            });
+    }
+
+    function filterAndDisplayMaintenance() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+        const priorityFilter = document.getElementById('priorityFilter').value;
+
+        const filteredRecords = allMaintenanceData.filter(record => {
+            const matchesSearch = !searchTerm || 
+                (record.asset_name && record.asset_name.toLowerCase().includes(searchTerm)) ||
+                (record.serial_num && record.serial_num.toLowerCase().includes(searchTerm)) ||
+                (record.technician_name && record.technician_name.toLowerCase().includes(searchTerm)) ||
+                (record.description && record.description.toLowerCase().includes(searchTerm));
+
+            const matchesStatus = !statusFilter || record.status === statusFilter;
+            const matchesPriority = !priorityFilter || getPriorityLevel(record) === priorityFilter;
+
+            return matchesSearch && matchesStatus && matchesPriority;
+        });
+
+        displayMaintenanceRecords(filteredRecords);
+    }
+
+    function getPriorityLevel(record) {
+
+        if (record.maintenance_type === 'emergency') return 'high';
+        if (record.maintenance_type === 'corrective') return 'medium';
+        if (record.maintenance_type === 'preventive') return 'low';
+        
+        if (record.expected_completion_date) {
+            const today = new Date();
+            const completionDate = new Date(record.expected_completion_date);
+            const daysUntilCompletion = Math.ceil((completionDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (daysUntilCompletion <= 2) return 'high';
+            if (daysUntilCompletion <= 7) return 'medium';
+            return 'low';
+        }
+        
+        return 'medium';
+    }
+
+    function displayMaintenanceRecords(records) {
+        const grid = document.getElementById('maintenanceGrid');
+        
+        if (records.length === 0) {
+            grid.innerHTML = `
+                <div class="no-maintenance">
+                    <i class="fas fa-tools" style="font-size: 48px; margin-bottom: 20px;"></i>
+                    <h3>No Maintenance Records Found</h3>
+                    <p>There are no maintenance records matching your criteria.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        records.forEach(record => {
+            const priority = getPriorityLevel(record);
+            const priorityClass = `maintenance-priority ${priority}`;
+            const priorityText = priority.charAt(0).toUpperCase() + priority.slice(1) + ' Priority';
+            
+            const statusClass = `status-badge ${record.status}`;
+            const statusText = record.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+            const statusDropdown = getStatusDropdown(record);
+
+            html += `
+                <div class="maintenance-card">
+                    <div class="maintenance-header">
+                        <h4>${record.asset_name || 'Unnamed Asset'}</h4>
+                        <span class="${priorityClass}">${priorityText}</span>
+                    </div>
+                    <div class="maintenance-details">
+                        <p><strong>Serial:</strong> ${record.serial_num || 'N/A'}</p>
+                        <p><strong>Type:</strong> ${record.maintenance_type ? record.maintenance_type.charAt(0).toUpperCase() + record.maintenance_type.slice(1) : 'N/A'}</p>
+                        <p><strong>Issue:</strong> ${record.description || 'No description'}</p>
+                        <p><strong>Technician:</strong> ${record.technician_name || 'N/A'}</p>
+                        <p><strong>Started:</strong> ${formatDate(record.start_date) || 'N/A'}</p>
+                        <p><strong>Expected Completion:</strong> ${formatDate(record.expected_completion_date) || 'N/A'}</p>
+                        <p><strong>Status:</strong> <span class="${statusClass}">${statusText}</span></p>
+                        ${record.cost ? `<p><strong>Cost:</strong> ₱${parseFloat(record.cost).toFixed(2)}</p>` : ''}
+                    </div>
+                    <div class="maintenance-actions">
+                        ${record.status !== 'completed' ? `
+                            <button class="btn btn-success" onclick="updateMaintenanceStatus(${record.id}, 'completed')">
+                                <i class="fas fa-check"></i> Mark Complete
+                            </button>
+                        ` : ''}
+                        ${statusDropdown}
+                    </div>
+                </div>
+            `;
+        });
+        grid.innerHTML = html;
+    }
+
+    function getStatusDropdown(record) {
+
+        if (record.status === 'completed') {
+            return '';
+        }
+
+        let dropdown = `
+            <div class="status-dropdown">
+                <button class="status-dropdown-btn">
+                    <i class="fas fa-sync-alt"></i> Update Status
+                </button>
+                <div class="status-dropdown-content">
+        `;
+
+        const statusOptions = [
+            { value: 'scheduled', label: 'Scheduled', icon: 'fa-calendar' },
+            { value: 'in_progress', label: 'In Progress', icon: 'fa-tools' },
+            { value: 'cancelled', label: 'Cancelled', icon: 'fa-times' }
+        ];
+
+        statusOptions.forEach(option => {
+            dropdown += `
+                <button class="${option.value}" onclick="updateMaintenanceStatus(${record.id}, '${option.value}')">
+                    <i class="fas ${option.icon}"></i> ${option.label}
+                </button>
+            `;
+        });
+
+        dropdown += `
+                </div>
+            </div>
+        `;
+
+        return dropdown;
+    }
+
+    function updateMaintenanceStatus(maintenanceId, status) {
+        let confirmMessage = '';
+        switch(status) {
+            case 'completed':
+                confirmMessage = 'Are you sure you want to mark this maintenance as completed?';
+                break;
+            case 'cancelled':
+                confirmMessage = 'Are you sure you want to cancel this maintenance?';
+                break;
+            case 'in_progress':
+                confirmMessage = 'Are you sure you want to mark this maintenance as in progress?';
+                break;
+            case 'scheduled':
+                confirmMessage = 'Are you sure you want to mark this maintenance as scheduled?';
+                break;
+            default:
+                confirmMessage = `Are you sure you want to update the status to ${status}?`;
+        }
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        const updateData = {
+            id: maintenanceId,
+            status: status
+        };
+
+        if (status === 'completed') {
+            updateData.actual_completion_date = new Date().toISOString().split('T')[0];
+        }
+
+        fetch('../Api/assets/maintenance.php?action=updateMaintenanceStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Maintenance status updated successfully');
+                loadMaintenanceRecords();
+            } else {
+                alert('Failed to update maintenance status: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Network error occurred');
+        });
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
+        } catch (e) {
+            return dateString;
+        }
+    }
+
+    function showErrorMessage(message) {
+        const grid = document.getElementById('maintenanceGrid');
+        grid.innerHTML = `<div class="no-maintenance" style="color: #dc3545;">${message}</div>`;
+    }
+
+    function toggleSearch() {
+        const searchSection = document.getElementById('searchSection');
+        searchSection.style.display = searchSection.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('priorityFilter').value = '';
+        filterAndDisplayMaintenance();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadMaintenanceRecords();
+        
+        document.getElementById('searchInput').addEventListener('input', filterAndDisplayMaintenance);
+        document.getElementById('statusFilter').addEventListener('change', filterAndDisplayMaintenance);
+        document.getElementById('priorityFilter').addEventListener('change', filterAndDisplayMaintenance);
+    });
+</script>
+</body>
+</html>

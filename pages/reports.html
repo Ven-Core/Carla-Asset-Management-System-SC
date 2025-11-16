@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MANDAUE CITY COLLEGE - Log Out</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/asset-dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="../img/mcc.png" alt="Mandaue City College Logo" class="logo">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                        <span>Home</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='asset-dashboard.html'">
+                        <span>Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='departments.html'">
+                        <span>Department</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrow-application.html'">
+                        <span>Borrow Application</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowing-request.html'">
+                        <span>Borrowing Request</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowed-assets.html'">
+                        <span>Borrowed Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='maintenance.html'">
+                        <span>Under maintenance</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='inactive-assets.html'">
+                        <span>Inactive asset</span>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>MANDAUE CITY COLLEGE ASSET MANAGEMENT SYSTEM</h1>
+            </div>
+
+            <div class="content-section" style="text-align:center; max-width:720px; margin: 0 auto;">
+                <h3>Ready to log out?</h3>
+                <p style="color:#666; margin:10px 0 20px;">You can safely end your session. You will be redirected to the login page.</p>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <button class="btn btn-danger" id="confirmLogout"><i class="fas fa-sign-out-alt"></i> Log out</button>
+                    <button class="btn btn-secondary" id="cancelLogout"><i class="fas fa-arrow-left"></i> Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('confirmLogout').addEventListener('click', function(){
+            window.location.href = '../index.html';
+        });
+        document.getElementById('cancelLogout').addEventListener('click', function(){
+            window.location.href = 'dashboard.html';
+        });
+    </script>
+</body>
+</html>

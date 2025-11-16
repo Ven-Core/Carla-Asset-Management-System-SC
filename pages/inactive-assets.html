@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MANDAUE CITY COLLEGE - Inactive Assets</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/asset-dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="../img/mcc.png" alt="Mandaue City College Logo" class="logo">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                        <span>Home</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='asset-dashboard.html'">
+                        <span>Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='departments.html'">
+                        <span>Department</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrow-application.html'">
+                        <span>Borrow Application</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowing-request.html'">
+                        <span>Borrowing Request</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='borrowed-assets.html'">
+                        <span>Borrowed Asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='maintenance.html'">
+                        <span>Under maintenance</span>
+                    </li>
+                    <li class="nav-item active">
+                        <span>Inactive asset</span>
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='reports.html'">
+                        <span>Log Out</span>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>MANDAUE CITY COLLEGE ASSET MANAGEMENT SYSTEM</h1>
+            </div>
+            
+            <div class="inactive-table-container">
+                <table class="assets-table">
+                    <thead>
+                        <tr>
+                            <th>Serial Number</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Reason</th>
+                            <th>Date Deactivated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ASSET-2022-045</td>
+                            <td>Old Desktop Computer</td>
+                            <td>Computer Lab room 22</td>
+                            <td>End of Life</td>
+                            <td>February 28, 2024</td>
+                            <td class="action-buttons">
+                                <button type="button" class="btn btn-success">Reactivate</button>
+                                <button type="button" class="btn btn-info">View Details</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>ASSET-2022-033</td>
+                            <td>Broken Projector</td>
+                            <td>School of Education</td>
+                            <td>Beyond Repair</td>
+                            <td>March 5, 2024</td>
+                            <td class="action-buttons">
+                                <button type="button" class="btn btn-success">Reactivate</button>
+                                <button type="button" class="btn btn-info">View Details</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>ASSET-2021-078</td>
+                            <td>Outdated Laptop</td>
+                            <td>School of Business</td>
+                            <td>Performance Issues</td>
+                            <td>January 15, 2024</td>
+                            <td class="action-buttons">
+                                <button type="button" class="btn btn-success">Reactivate</button>
+                                <button type="button" class="btn btn-info">View Details</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>ASSET-2022-012</td>
+                            <td>Faulty Audio Equipment</td>
+                            <td>Speech Lab</td>
+                            <td>Hardware Failure</td>
+                            <td>March 8, 2024</td>
+                            <td class="action-buttons">
+                                <button type="button" class="btn btn-success">Reactivate</button>
+                                <button type="button" class="btn btn-info">View Details</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>ASSET-2021-089</td>
+                            <td>Old Printer</td>
+                            <td>School of Technology</td>
+                            <td>Replaced by New Model</td>
+                            <td>February 20, 2024</td>
+                            <td class="action-buttons">
+                                <button type="button" class="btn btn-success">Reactivate</button>
+                                <button type="button" class="btn btn-info">View Details</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/inactive-assets.js"></script>
+</body>
+</html>
